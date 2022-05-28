@@ -10,6 +10,8 @@ See [documentation](https://developer.apple.com/documentation/swift_packages/add
 
 ## How to Use
 
+You can just import StarRatingViewSwiftUI to use the package.
+
 ```swift
   StarRatingView(rating: 4)
     .frame(width: 300, height: 30)
