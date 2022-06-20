@@ -2,7 +2,7 @@
  * FILE:	StarRatingView.swift
  * DESCRIPTION:	StarRatingViewSwiftUI: View to Provide Star Rating Features
  * DATE:	Sat, May 28 2022
- * UPDATED:	Sat, May 28 2022
+ * UPDATED:	Mon, Jun 20 2022
  * AUTHOR:	Kouichi ABE (WALL) / 阿部康一
  * E-MAIL:	kouichi@MagickWorX.COM
  * URL:		https://www.MagickWorX.COM/
@@ -33,8 +33,8 @@ public struct StarRatingView: View
   public var body: some View {
     GeometryReader {
       (geometry) in
-      let s: CGFloat = 8.0 // space between stars
-      let l: CGFloat = floor(geometry.size.height * 0.9)
+      let l: CGFloat = floor(geometry.size.height)
+      let s: CGFloat = floor(l * 0.2) // space between stars
       let w: CGFloat = (l + s) * CGFloat(maxRating)
       HStack(spacing: s) {
         ForEach(0..<fullCount, id: \.self) { _ in
