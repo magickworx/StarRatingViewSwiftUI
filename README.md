@@ -23,8 +23,10 @@ You can just import StarRatingViewSwiftUI to use the package.
 ```
 
 ```swift
-  StarRatingView(rating: 1.5)
-    .onUpdated { newRating in
+  @State var rating: Float = 1.5
+
+  StarRatingView(rating: $rating)
+    .onChange(of: rating) { newRating in
       print(newRating)
     }
     .frame(width: 300, height: 30)

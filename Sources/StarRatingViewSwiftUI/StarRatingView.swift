@@ -2,7 +2,7 @@
  * FILE:	StarRatingView.swift
  * DESCRIPTION:	StarRatingViewSwiftUI: View to Provide Star Rating Features
  * DATE:	Sat, May 28 2022
- * UPDATED:	Mon, Jun 20 2022
+ * UPDATED:	Fri, Jun 24 2022
  * AUTHOR:	Kouichi ABE (WALL) / 阿部康一
  * E-MAIL:	kouichi@MagickWorX.COM
  * URL:		https://www.MagickWorX.COM/
@@ -19,20 +19,30 @@ import SwiftUI
  */
 public struct StarRatingView: View
 {
-  @State private var rating: Float
+  private let theRating: Float
   private let color: Color // The color of the stars
   private let maxRating: Float // Defines upper limit of the rating
-  private var onUpdated: ((Float) -> Void)? = nil
+  private var needsComputing: Bool = false
 
   public init(rating: Float, color: Color = .orange, maxRating: Float = 5) {
-    _rating = State(initialValue: rating)
+    self.theRating = rating
     self.color = color
     self.maxRating = maxRating
+    self._rating = .constant(rating) // XXX: Dummy
+  }
+
+  @Binding private var rating: Float
+
+  public init(rating: Binding<Float>, color: Color = .orange, maxRating: Float = 5) {
+    self.theRating = rating.wrappedValue
+    self.color = color
+    self.maxRating = maxRating
+    self._rating = rating
+    self.needsComputing = true
   }
 
   public var body: some View {
-    GeometryReader {
-      (geometry) in
+    GeometryReader { geometry in
       let l: CGFloat = floor(geometry.size.height)
       let s: CGFloat = floor(l * 0.2) // space between stars
       let w: CGFloat = (l + s) * CGFloat(maxRating)
@@ -47,7 +57,7 @@ public struct StarRatingView: View
           self.emptyStar.frame(width: l, height: l)
         }
       }
-      .gesture(tap(on: w))
+      .gesture(needsComputing ? tap(on: w) : nil)
     }
   }
 }
@@ -55,11 +65,17 @@ public struct StarRatingView: View
 extension StarRatingView
 {
   private var fullCount: Int {
-    return Int(self.rating)
+    if needsComputing {
+      return Int(self.rating)
+    }
+    return Int(theRating)
   }
 
   private var emptyCount: Int {
-    return Int(maxRating - self.rating)
+    if needsComputing {
+      return Int(maxRating - self.rating)
+    }
+    return Int(maxRating - theRating)
   }
 
   private var halfFullCount: Int {
@@ -119,21 +135,16 @@ extension StarRatingView
      * minimumDistance が 0.0 なのは TapGesture のタップにも反応させるため
      */
     DragGesture(minimumDistance: 0.0, coordinateSpace: .local)
-      .onChanged {
-        (value) in
+      .onChanged { value in
         self.computeRating(with: value, on: length)
       }
-      .onEnded {
-        (value) in
+      .onEnded { value in
         self.computeRating(with: value, on: length)
-        if let onUpdated = self.onUpdated {
-          onUpdated(self.rating)
-        }
       }
   }
 
   private func computeRating(with value: DragGesture.Value, on length: CGFloat) {
-    guard self.onUpdated != nil else { return }
+    guard self.needsComputing else { return }
 
     let salt: CGFloat = 20.0 // XXX: 判定領域に遊びを持たせる
     var x = floor(value.location.x)
@@ -168,25 +179,18 @@ extension StarRatingView
   }
 }
 
-extension StarRatingView
-{
-  public func onUpdated(_ action: @escaping (Float) -> Void) -> some View {
-    var copy = self
-    copy.onUpdated = action
-    return copy
-  }
-}
-
 struct StarRatingView_Previews: PreviewProvider
 {
+  @State static var rating: Float = 1.5
+
   static var previews: some View {
     Group {
       StarRatingView(rating: 4)
       StarRatingView(rating: 5.5, color: .pink, maxRating: 7)
       // Changable with Swipe
-      StarRatingView(rating: 1.5)
-        .onUpdated { newRating in
-          print(newRating)
+      StarRatingView(rating: $rating)
+        .onChange(of: rating) { newValue in
+          print(newValue)
         }
     }
     .frame(width: 300, height: 30)
