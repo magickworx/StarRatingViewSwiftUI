@@ -146,7 +146,7 @@ extension StarRatingView
   private func computeRating(with value: DragGesture.Value, on length: CGFloat) {
     guard self.needsComputing else { return }
 
-    var x = max(0.0, min(floor(value.location.x), length))
+    let x = max(0.0, min(floor(value.location.x), length))
     let r = Float(round((x / length) * 100 * CGFloat(maxRating / 10)) / 10)
     switch swipeDirection(value.translation) {
       case .right, .left:
